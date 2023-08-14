@@ -1,6 +1,12 @@
 version: 2
+
+orbs:
+  aws-cli: circleci/aws-cli@2.0.3  
+  aws-eks: circleci/aws-eks@2.2.0  
+  kubernetes: circleci/kubernetes@0.4.0
+
 jobs:
-  build:
+  setup-run-lint:
     docker:
       - image: 'python:3.7.3-stretch'
     working_directory: ~/repo
@@ -28,3 +34,11 @@ jobs:
           command: |
             . venv/bin/activate
             make lint
+
+workflows:
+  default:
+    jobs:
+      - setup-run-lint
+    #  - build-docker-images:
+    #     requires:
+    #        - setup-run-lint
