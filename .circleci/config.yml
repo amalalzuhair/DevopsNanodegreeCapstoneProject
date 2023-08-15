@@ -82,7 +82,7 @@ jobs:
               
         - aws-eks/create-cluster:
             cluster-name: << parameters.cluster-name >>
-            zones: us-east-1a,us-east-2b
+            zones: us-east-1a,us-east-1b
   test-cluster:
       docker:
         - image: circleci/node:13.8.0
