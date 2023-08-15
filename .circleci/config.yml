@@ -74,16 +74,17 @@ jobs:
             name: Install the eksctl tool
             command: |
               mkdir -p eksctl_download
-              curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" \
+              curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" \
                 | tar xz -C eksctl_download
               chmod +x eksctl_download/eksctl
-              echo "successfully downloaded"
               sudo mv eksctl_download/eksctl /usr/local/bin/
               rmdir eksctl_download
               
         - aws-eks/create-cluster:
+            aws-profile: default
+            aws-region: us-east-1
             cluster-name: << parameters.cluster-name >>
-            zones: us-east-1,us-east-2
+            zones: us-east-1a,us-east-2b
   test-cluster:
       docker:
         - image: circleci/node:13.8.0
