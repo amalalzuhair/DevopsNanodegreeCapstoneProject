@@ -44,7 +44,7 @@ jobs:
           name: Build application Docker image
           command: |
             docker login -u amalsz -p dytqak-Qusgu8-faqmuh
-            docker build -t amalsz/capstone-project .
+            docker build -t capstone-project .
             docker image ls
             dockerpath="amalsz/capstone-project:v1.0.0"
             docker tag capstone-project ${dockerpath}
