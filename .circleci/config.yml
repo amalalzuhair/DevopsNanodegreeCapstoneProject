@@ -56,7 +56,7 @@ workflows:
   default:
     jobs:
       - setup-run-lint
-      - build-docker-images:
+      - build-and-push-docker-image:
          requires:
             - setup-run-lint
     #  - create-cluster:
