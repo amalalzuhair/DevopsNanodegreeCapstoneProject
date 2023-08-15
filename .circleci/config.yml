@@ -81,8 +81,6 @@ jobs:
               rmdir eksctl_download
               
         - aws-eks/create-cluster:
-            aws-profile: default
-            asg-access: true
             aws-region: us-east-1
             cluster-name: << parameters.cluster-name >>
             zones: us-east-1a,us-east-2b
