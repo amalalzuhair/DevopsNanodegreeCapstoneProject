@@ -74,7 +74,7 @@ jobs:
             name: Install the eksctl tool
             command: |
               mkdir -p eksctl_download
-              curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" \
+              curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" \
                 | tar xz -C eksctl_download
               chmod +x eksctl_download/eksctl
               sudo mv eksctl_download/eksctl /usr/local/bin/
@@ -117,6 +117,27 @@ jobs:
             name: Confirm green application is in cluster
             command: |
               sleep 60 && kubectl get all && sleep 60
+  delete-cluster: 
+      docker:
+        - image: circleci/node:13.8.0
+      parameters:
+        cluster-name:
+          description: |
+            Name of the EKS cluster
+          type: string
+      steps:
+        - run:
+            name: Install the eksctl tool
+            command: |
+              mkdir -p eksctl_download
+              curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" \
+                | tar xz -C eksctl_download
+              chmod +x eksctl_download/eksctl
+              sudo mv eksctl_download/eksctl /usr/local/bin/
+              rmdir eksctl_download
+        - aws-eks/delete-cluster:
+            cluster-name: << parameters.cluster-name >>
+
 workflows:
   default:
     jobs:
@@ -124,12 +145,15 @@ workflows:
       - build-and-push-docker-image:
          requires:
             - setup-run-lint
-      - create-the-cluster:
+      #- create-the-cluster:
+      #   cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
+      #   requires:
+      #      - build-and-push-docker-image
+      - test-cluster:
          cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
          requires:
-            - build-and-push-docker-image
-      - test-cluster:
-         cluster-name: capstone-deploy-${CIRCLE_WORKFLOW_ID:0:7}
-         requires:
             - create-the-cluster
-    #delete cluster
+      #- delete-cluster: 
+      #   cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
+      #   requires: 
+      #      - test-cluster
