@@ -8,7 +8,7 @@ jobs:
   setup-run-lint:
     docker:
       - image: 'python:3.7.3-stretch'
-    working_directory: ~/repo
+    working_directory: ~/app
     steps:
       - checkout
       - restore_cache:
@@ -33,14 +33,32 @@ jobs:
           command: |
             . venv/bin/activate
             make lint
+ 
+  build-and-push-docker-image:
+    docker:
+      - image: docker:17.05.0-ce-git
+    steps:
+      - checkout
+      - setup_remote_docker
+      - run:
+          name: Build application Docker image
+          command: |
+            cd frontend
+            docker login -u amalsz -p dytqak-Qusgu8-faqmuh
+            docker build -t amalsz/capstone-project .
+            docker image ls
+            dockerpath="amalsz/capstone-project:v1.0.0"
+            docker tag capstone-project ${dockerpath}
+            echo "Docker ID and Image: $dockerpath"
+            docker push ${dockerpath}
 
 workflows:
   default:
     jobs:
       - setup-run-lint
-    #  - build-docker-images:
-    #     requires:
-    #        - setup-run-lint
+      - build-docker-images:
+         requires:
+            - setup-run-lint
     #  - create-cluster:
     #      cluster-name: capstone-deploy-${CIRCLE_WORKFLOW_ID:0:7}
     #      requires:
