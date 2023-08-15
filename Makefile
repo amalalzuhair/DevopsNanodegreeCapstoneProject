@@ -22,17 +22,7 @@ lint:
 	# This is a linter for Python source code linter: https://www.pylint.org/
 	# This should be run from inside a virtualenv
 	pylint --disable=R,C,W1203,W1202 app/web.py
-
-docker-build:  ## Build the docker image and list available docker images
-	docker build -t amalsz/capstone-project .
-	docker image ls
-
-docker-upload: ## Upload the docker image to AWS
-	dockerpath="amalsz/capstone-project:v1.0.0"
-	docker tag capstone-project ${dockerpath}
-    echo "Docker ID and Image: $dockerpath"
-    docker push ${dockerpath}
-
+	
 start-api:     ## Run the python application locally
 	python app/web.py
 all: install lint test
