@@ -150,7 +150,7 @@ workflows:
       #   requires:
       #      - build-and-push-docker-image
       - test-cluster:
-         cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
+         cluster-name: capstone-project-d8b600a #change later
       #   requires:
       #      - create-the-cluster
       #- delete-cluster: 
