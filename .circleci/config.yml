@@ -3,7 +3,11 @@ parameters:
   workflow_id:
     type: string
     default: '${CIRCLE_WORKFLOW_ID:0:7}'
-
+orbs:
+  aws-cli: circleci/aws-cli@2.0.3  
+  aws-eks: circleci/aws-eks@2.2.0  
+  kubernetes: circleci/kubernetes@0.4.0
+  
 jobs:
   setup-run-lint:
     docker:
@@ -33,24 +37,86 @@ jobs:
           command: |
             . venv/bin/activate
             make lint
- 
   build-and-push-docker-image:
     docker:
       - image: docker:17.05.0-ce-git
     steps:
       - checkout
-      - setup_remote_docker
+      - setup_remote_docker:
+          docker_layer_caching: true
       - run:
           name: Build application Docker image
           command: |
             docker login -u amalsz -p dytqak-Qusgu8-faqmuh
-            docker build -t capstone-project .
-            docker image ls
-            dockerpath="amalsz/capstone-project:v1.0.0"
-            docker tag capstone-project ${dockerpath}
-            echo "Docker ID and Image: $dockerpath"
+            docker build -t capstone-project-blue-env .
+            dockerpath="amalsz/capstone-project-blue-env:v1.0.0"
+            docker tag capstone-project-blue-env ${dockerpath}
             docker push ${dockerpath}
-
+      - run:
+          name: Build application Docker image
+          command: |
+            docker login -u amalsz -p dytqak-Qusgu8-faqmuh
+            docker build -t capstone-project-green-env .
+            dockerpath="amalsz/capstone-project-green-env:v1.0.0"
+            docker tag capstone-project-green-env ${dockerpath}
+            docker push ${dockerpath}
+  create-the-cluster:
+      docker:
+        - image: circleci/node:13.8.0
+      parameters:
+        cluster-name:
+          description: |
+            Name of the EKS cluster
+          type: string
+      steps:
+        - checkout
+        - run:
+            name: Install the eksctl tool
+            command: |
+              mkdir -p eksctl_download
+              curl --silent --location --retry 5 "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz" \
+                | tar xz -C eksctl_download
+              chmod +x eksctl_download/eksctl
+              sudo mv eksctl_download/eksctl /usr/local/bin/
+              rmdir eksctl_download
+              
+        - aws-eks/create-cluster:
+            cluster-name: << parameters.cluster-name >>
+            zones: us-east-1a,us-east-1b
+  test-cluster:
+      docker:
+        - image: circleci/node:13.8.0
+      parameters:
+        cluster-name:
+          description: |
+            Name of the EKS cluster
+          type: string
+      steps:
+        - checkout
+        - kubernetes/install:
+            kubectl-version: v1.25.0
+        - aws-eks/update-kubeconfig-with-authenticator:
+            cluster-name: << parameters.cluster-name >>
+        - kubernetes/create-or-update-resource:
+            resource-file-path: ./service.json
+            resource-name: service/loadbalancerv1
+        - run:
+            name: Deploy blue application in cluster
+            command: |
+              kubectl cluster-info
+              kubectl apply -f ./service.json
+        - run:
+            name: Confirm blue application is in cluster
+            command: |
+              sleep 60 && kubectl get all && sleep 60
+        - run:
+            name: Deploy green application in cluster
+            command: |
+              kubectl apply -f ./service.json
+        - run:
+            name: Confirm green application is in cluster
+            command: |
+              sleep 60 && kubectl get all && sleep 60
 workflows:
   default:
     jobs:
@@ -58,13 +124,12 @@ workflows:
       - build-and-push-docker-image:
          requires:
             - setup-run-lint
-    #  - create-cluster:
-    #      cluster-name: capstone-deploy-${CIRCLE_WORKFLOW_ID:0:7}
-    #      requires:
-    #        - build-docker-images
-
-    #  - test-cluster:
-    #      cluster-name: capstone-deploy-${CIRCLE_WORKFLOW_ID:0:7}
-    #      requires:
-    #        - create-cluster
-    
+      - deploy-docker-to-cluster:
+         cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
+         requires:
+            - build-and-push-docker-image
+      - test-cluster:
+         cluster-name: capstone-deploy-${CIRCLE_WORKFLOW_ID:0:7}
+         requires:
+            - create-the-cluster
+    #delete cluster
