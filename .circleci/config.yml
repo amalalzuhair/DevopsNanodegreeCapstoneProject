@@ -124,7 +124,7 @@ workflows:
       - build-and-push-docker-image:
          requires:
             - setup-run-lint
-      - deploy-docker-to-cluster:
+      - create-the-cluster:
          cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
          requires:
             - build-and-push-docker-image
