@@ -81,11 +81,8 @@ jobs:
               rmdir eksctl_download
               
         - aws-eks/create-cluster:
-            aws-region: us-east-1
             cluster-name: << parameters.cluster-name >>
             zones: us-east-1a,us-east-2b
-            verbose: 3
-            external-dns-access: true 
   test-cluster:
       docker:
         - image: circleci/node:13.8.0
