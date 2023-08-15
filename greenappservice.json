@@ -35,25 +35,3 @@
       }
     }
   }
-  
-  {
-    "kind": "Service",
-    "apiVersion": "v1",
-    "metadata": {
-        "name": "bluegreendeployment",
-        "labels": {
-            "app": "bluegreendeployment"
-        }
-    },
-    "spec": {
-        "ports": [{
-                "port": 8000,
-                "targetPort": 80
-            }
-        ],
-        "selector": {
-            "app": "blue"
-        },
-        "type": "LoadBalancer"
-    }
-  }
