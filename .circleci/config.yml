@@ -47,7 +47,7 @@ jobs:
       - run:
           name: Build application Docker image
           command: |
-            docker login -u amalsz -p dytqak-Qusgu8-faqmuh
+            docker login -u amalsz -p ${DOCKER_PASSWORD}
             docker build -t capstone-project-blue-env .
             dockerpath="amalsz/capstone-project-blue-env:v1.0.0"
             docker tag capstone-project-blue-env ${dockerpath}
@@ -55,7 +55,7 @@ jobs:
       - run:
           name: Build application Docker image
           command: |
-            docker login -u amalsz -p dytqak-Qusgu8-faqmuh
+            docker login -u amalsz -p ${DOCKER_PASSWORD}
             docker build -t capstone-project-green-env .
             dockerpath="amalsz/capstone-project-green-env:v1.0.0"
             docker tag capstone-project-green-env ${dockerpath}
