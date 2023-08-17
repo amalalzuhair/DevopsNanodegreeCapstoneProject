@@ -155,7 +155,7 @@ workflows:
          cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7} #change later
          requires:
             - create-the-cluster
-      #- delete-cluster: 
-      #   cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
-      #   requires: 
-      #      - blue-green-deployment
+      - delete-cluster: 
+         cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
+         requires: 
+            - blue-green-deployment
