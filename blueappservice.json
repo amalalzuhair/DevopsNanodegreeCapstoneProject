@@ -22,7 +22,7 @@
           "containers": [
             {
               "name": "blue",
-              "image": "capstone-project-blue-env",
+              "image": "amalsz/capstone-project-blue-env:v1.0.0",
               "ports": [
                 {
                   "name": "http-server",

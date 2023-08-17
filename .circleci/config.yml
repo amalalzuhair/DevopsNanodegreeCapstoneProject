@@ -83,7 +83,7 @@ jobs:
         - aws-eks/create-cluster:
             cluster-name: << parameters.cluster-name >>
             zones: us-east-1a,us-east-1b
-  test-cluster:
+  blue-green-deployment:
       docker:
         - image: circleci/node:13.8.0
       parameters:
@@ -104,7 +104,8 @@ jobs:
             name: Deploy blue application in cluster
             command: |
               kubectl cluster-info
-              kubectl apply -f ./service.json
+              kubectl apply -f ./blueappservice.json
+              kubectl apply -f ./deploybluegreen.json
         - run:
             name: Confirm blue application is in cluster
             command: |
@@ -112,7 +113,8 @@ jobs:
         - run:
             name: Deploy green application in cluster
             command: |
-              kubectl apply -f ./service.json
+              kubectl apply -f ./greenappservice.json
+              kubectl apply -f ./deploybluegreen.json              
         - run:
             name: Confirm green application is in cluster
             command: |
@@ -145,15 +147,15 @@ workflows:
       - build-and-push-docker-image:
          requires:
             - setup-run-lint
-      #- create-the-cluster:
-      #   cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
-      #   requires:
-      #      - build-and-push-docker-image
-      - test-cluster:
-         cluster-name: capstone-project-d8b600a #change later
-      #   requires:
-      #      - create-the-cluster
+      - create-the-cluster:
+         cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
+         requires:
+            - build-and-push-docker-image
+      - blue-green-deployment:
+         cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7} #change later
+         requires:
+            - create-the-cluster
       #- delete-cluster: 
       #   cluster-name: capstone-project-${CIRCLE_WORKFLOW_ID:0:7}
       #   requires: 
-      #      - test-cluster
+      #      - blue-green-deployment
